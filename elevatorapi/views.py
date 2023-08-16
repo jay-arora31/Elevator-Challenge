@@ -28,7 +28,7 @@ class ElevatorViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['DELETE'])
-def delete_all_data(request):
+def deleteAllData(request):
     Elevator.objects.all().delete()
     Building.objects.all().delete()
     return Response({"message": "All data deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
@@ -57,8 +57,8 @@ class ElevatorRequest:
             self.direction = 0
             self.service_list.pop(0)
             self.running = False
-            print(f"Lift {self.number} door opening")
-            print(f"Lift {self.number} door closing")
+            print(f"Elevator {self.number} door opening")
+            print(f"Elevator {self.number} door closing")
     
     def add_request(self, floor):
         if floor not in self.service_list:
@@ -67,45 +67,54 @@ class ElevatorRequest:
             self.direction = -1 if self.current_floor > floor else 1
 
     def process_service_list(self):
+        #changing lift status
         ele_obj=Elevator.objects.get(number=self.number)
         ele_obj.running=True
         ele_obj.save()
+
+
+
         print("-" * 50)
-        print(f"{' ' * 24} Lift - {self.number}")
+        print(f"{' ' * 24} Elevator - {self.number}")
         print("-" * 50)
         print("Need To Process => ", self.service_list)
+        # running elevator
         while self.service_list:
-            time.sleep(3)
+            time.sleep(2)
             self.running = True
             while self.running:
-                print(f"Lift {self.number} direction is {'Going up' if self.direction == 1 else 'Going down' if self.direction == -1 else 'Idle'}")
-                print(f"Lift {self.number} is at floor {self.current_floor}")
+                print(f"Elevator {self.number} direction is {'Going up' if self.direction == 1 else 'Going down' if self.direction == -1 else 'Idle'}")
+                print(f"Elevator {self.number} is at floor {self.current_floor}")
                 if self.current_floor in self.service_list:
-                    print(f"Lift {self.number} stopping at floor {self.current_floor}")
+                    print(f"Elevator {self.number} stopping at floor {self.current_floor}")
                     self.service_list.remove(self.current_floor)
                     self.running = False
                 else:
                     self.move()
-            #print(f"Lift {self.number} is currently at floor {self.current_floor}")
-            #print(f"Lift {self.number} direction is {'Going up' if self.direction == 1 else 'Going down' if self.direction == -1 else 'Idle'}")
-            print(f"Lift {self.number} running status is False")
-            print(f"Lift {self.number} door is opening")
-            print(f"Lift {self.number} door is closing")
+            #print(f"Elevator {self.number} is currently at floor {self.current_floor}")
+            #print(f"Elevator {self.number} direction is {'Going up' if self.direction == 1 else 'Going down' if self.direction == -1 else 'Idle'}")
+            print(f"Elevator {self.number} running status is False")
+            print(f"Elevator {self.number} door is opening")
+            print(f"Elevator {self.number} door is closing")
+            
+            #change Elevator status and Elevator position and Elevator direction
             ele_obj=Elevator.objects.get(number=self.number)
             ele_obj.direction=self.direction
             ele_obj.current_floor=self.current_floor
             ele_obj.running=False
             ele_obj.save()
 
+            if not self.service_list:
+                self.direction = 0
 
 
 def checkServiceRequest(lists):
     building=Building.objects.all()
-    return all(building[0].min_floor <= number <= building[0].max_floors for sublist in lists for number in sublist)
+    return all(building[0].min_floor <= number <= building[0].max_floor for sublist in lists for number in sublist)
 
 
 @api_view(['POST'])
-def start_lift(request):
+def requestLift(request):
     lift_pos=[]
     operational_lift=[]
     all_floors = []
@@ -116,20 +125,20 @@ def start_lift(request):
         request_data=JSONParser().parse(request) 
 
         no_of_lifts=data_lift[0].num_lifts
-        no_of_floor=data_lift[0].max_floors
+        no_of_floor=data_lift[0].max_floor
         #converting servicelist dict into simple 2dlist
-        request_each=list(request_data.get('data'))
+        request_each=list(request_data.get('service_list'))
         # filter only operational lift  appending their  current floor in lift_pos list
         for i in lift_data:
-            lift_pos.append(i.current_floor)
             if not i.maintenance:
+                lift_pos.append(i.current_floor)
                 operational_lift.append(i.number-1)
         check_service=checkServiceRequest(request_each)
         if check_service:
                 if len(request_each)<=len(operational_lift):  
                     for i in range(no_of_floor+1):
                         all_floors.append(i)
-                    elevators = [ElevatorRequest(i, lift_pos[i]) for i in operational_lift]
+                    elevators = [ElevatorRequest(operational_lift[j], lift_pos[j]) for j in range(len(operational_lift))]
                     for floor in all_floors:
                             best_elevator = None
                             min_cost = float('inf')
@@ -152,19 +161,18 @@ def start_lift(request):
                         elevators_data=Elevator.objects.all()
                         ele_dict={
                         }
-                        for i in elevators_data:
-                            temp_dict={
-                                "current_floor":i.current_floor,
-                                "direction":i.direction,
-                                "lift_running_status":i.running
-                            }
-                            ele_dict["Lift  "+str(i.number)]=temp_dict
-                        return Response(ele_dict)
-                    return Response({"message": "All data fetched"})
+                    for i in elevators_data:
+                        temp_dict={
+                            "current_floor":i.current_floor,
+                            "direction":i.direction,
+                            "lift_running_status":i.running
+                        }
+                        ele_dict["Lift  "+str(i.number)]=temp_dict
+                    return Response(ele_dict)
                 else:
-                    return Response({"message": "Number of service list should equal or less than of number of operational lift"})
+                    return Response({"message": "Number of service list should equal or less than of number of operational Elevator"})
         else:
-            return Response({"message": "Service List value should in range of "+str(data_lift[0].min_floor)+" and "+ str(data_lift[0].max_floors)})
+            return Response({"message": "Service List value should in range of "+str(data_lift[0].min_floor)+" and "+ str(data_lift[0].max_floor)})
     else:
         print("I am here")
         return Response({"message": "first insert building values minimum-floor, maximum-floor, number of lift"})

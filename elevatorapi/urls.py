@@ -9,8 +9,8 @@ router.register(r'elevator', ElevatorViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('delete-all-data/', delete_all_data, name='delete-all-data'),
-    path('start_lift/', start_lift, name='start_lift'),
+    path('deleteAllData/', deleteAllData, name='deleteAllData'),
+    path('requestLift/', requestLift, name='requestLift'),
     path('liftStatus/', liftStatus, name='liftStatus'),
 
 ]

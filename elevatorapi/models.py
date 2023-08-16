@@ -14,7 +14,7 @@ class Elevator(models.Model):
         return f"Elevator {self.number}"
 class Building(models.Model):
     min_floor = models.IntegerField()
-    max_floors = models.IntegerField()
+    max_floor = models.IntegerField()
     num_lifts = models.IntegerField()
     def __str__(self):
         return f"Building (Floors: {self.floors}, Lifts: {self.num_lifts})"
