@@ -61,7 +61,7 @@ $ python manage.py runserver
 
 ```
 
-# Elevator Management System API Contracts
+# Elevator System API Contracts
 
 ## Get All Buildings or Create a New Building
 #### note: add only one building data
