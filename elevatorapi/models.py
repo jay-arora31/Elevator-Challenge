@@ -8,6 +8,7 @@ class Elevator(models.Model):
     service_list = models.JSONField(default=list,null=True,blank=True)
     direction = models.IntegerField(default=0,null=True,blank=True)
     running = models.BooleanField(default=False)
+    maintenance=models.BooleanField(default=False)
 
     def __str__(self):
         return f"Elevator {self.number}"
