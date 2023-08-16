@@ -132,7 +132,7 @@ $ python manage.py runserver
 - **Example**:
 ```sh
     {
-   'service_list' :[]
+      "service_list":[[4,3,9],[6,0,4]]
     }
 ```
 - **Response**:
